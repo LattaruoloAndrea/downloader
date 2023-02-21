@@ -161,7 +161,7 @@ def json_config_gs_example():
 def get_services():
     print(SUPPORTED_DOWNLOADER)
 
-def get_servicec_with_config():
+def get_services_with_config():
     print(DOWNLOADER_WITH_CONFIG)
 
 def print_config_s3():

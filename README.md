@@ -30,7 +30,7 @@ It is possible to check the services supported calling;
 
 with config external services:
 ```
-get_servicec_with_config()
+get_services_with_config()
 ```
 all the services:
 
