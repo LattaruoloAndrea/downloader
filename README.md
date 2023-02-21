@@ -1,4 +1,4 @@
-# Downloader for Minio, S3, http/s
+# Python Downloader for Minio, S3, http/s
 
 Use this downloader to download from the services quoted.
 
@@ -9,7 +9,7 @@ The method download_from_config does the work. The config value is a Json of the
 
 ```
 {
-  "type": "minio",
+  "type": "type",
   "uri": "link used just in http",
   "path": "path_where_to_save_model",
   "config": {
@@ -44,17 +44,21 @@ It is possible to print this example json with the following commands
 
 for minio:
 ```
-print_obj_from_json(json_minio_example())
+print_config_minio())
 ```
 
 for s3:
 ```
-print_obj_from_json(json_s3_example())
+print_config_s3()
 ```
 
 for http/s:
-
 ```
-print_obj_from_json(json_http_example())
+print_config_http()
+```
 
+### Requirements
+```
+pip install minio
+pip install boto3
 ```

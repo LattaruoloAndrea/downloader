@@ -1,10 +1,9 @@
 import requests
 import json
 
-DOWNLOADER_WITH_CONFIG = ['s3', 'aws', 'google', 'gs', 'minio']
-SUPPORTED_DOWNLOADER = ['http', 'https'].append(DOWNLOADER_WITH_CONFIG)
+DOWNLOADER_WITH_CONFIG = ['s3', 'aws', 'minio']
+SUPPORTED_DOWNLOADER = ['http', 'https','s3', 'aws', 'minio']
 MODEL_CONFIG = "MODEL_CONFIG"
-
 
 def download_from_config(config):
     print_obj_from_json(config)
@@ -12,11 +11,11 @@ def download_from_config(config):
     if config["type"] == 'http' or config["type"] == 'https':
         download_file_http(config["uri"], config["path"], config["config"])
     elif config["type"] == 's3' or config["type"] == 'aws':
-        download_file_s3(config["uri"], config["path"], config["config"])
-    elif config["type"] == 'google' or config["type"] == 'gs':
-        download_file_google_storage(config["uri"], config["path"], config["config"])
+        download_file_s3(config["path"], config["config"])
+    # elif config["type"] == 'google' or config["type"] == 'gs':
+    #     download_file_google_storage(config["uri"], config["path"], config["config"])
     elif config["type"] == 'minio':
-        download_file_minio(config["uri"], config["path"], config["config"])
+        download_file_minio(config["path"], config["config"])
     else:
         type_not_implemented = config["type"]
         raise Exception(
@@ -27,7 +26,7 @@ def download_file_http(url, path: str = None, config: object = None):
     local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter below
     if path != None:
-        local_filename = path + '/' + local_filename
+        local_filename = path
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with open(local_filename, 'wb') as f:
@@ -40,7 +39,7 @@ def download_file_http(url, path: str = None, config: object = None):
     return local_filename
 
 
-def download_file_s3(url, path: str = None, config: object = None):
+def download_file_s3(path: str = None, config: object = None):
     import boto3
     s3 = boto3.client('s3',aws_access_key_id=config["access_key"] , aws_secret_access_key= config["secret_key"])
     check_config_for_s3_minio(config)
@@ -70,20 +69,20 @@ def check_config_for_s3_minio(config: object = None):
             f"Config value in the {MODEL_CONFIG} env not valid for s3.")
 
 
-def download_file_google_storage(url, path: str = None, config: object = None):
-    #https://stackoverflow.com/questions/42555142/downloading-a-file-from-google-cloud-storage-inside-a-folder
-    from google.cloud import storage
-    # Initialise a client
-    storage_client = storage.Client(config['OBJECT_NAME'])
-    # Create a bucket object for our bucket
-    bucket = storage_client.get_bucket(config['OBJECT_NAME'])
-    # Create a blob object from the filepath
-    blob = bucket.blob("folder_one/foldertwo/filename.extension")
-    # Download the file to a destination
-    blob.download_to_filename(path)
+# def download_file_google_storage(url, path: str = None, config: object = None):
+#     #https://stackoverflow.com/questions/42555142/downloading-a-file-from-google-cloud-storage-inside-a-folder
+#     from google.cloud import storage
+#     # Initialise a client
+#     storage_client = storage.Client(config['OBJECT_NAME'])
+#     # Create a bucket object for our bucket
+#     bucket = storage_client.get_bucket(config['OBJECT_NAME'])
+#     # Create a blob object from the filepath
+#     blob = bucket.blob("folder_one/foldertwo/filename.extension")
+#     # Download the file to a destination
+#     blob.download_to_filename(path)
 
 
-def download_file_minio(url, path: str = None, config: object = None):
+def download_file_minio(path: str = None, config: object = None):
     from minio import Minio
     check_config_for_s3_minio(config)
     client = Minio(config["BUCKET_NAME"],access_key=config["access_key"],secret_key= config["secret_key"])
@@ -92,19 +91,22 @@ def download_file_minio(url, path: str = None, config: object = None):
 
 def check_config_json(json_obj: object):
     try:
-        type = json_obj["type"]
-        if type == None or type == "":
+        type_ = json_obj["type"]
+        if type_ == None or type_ == "":
             raise Exception(f"Type value in the {MODEL_CONFIG} env is None.")
+        if not type_ in SUPPORTED_DOWNLOADER:
+            raise Exception(f"Type value in the {MODEL_CONFIG} env is not supported: {type_} , the one supported are: {SUPPORTED_DOWNLOADER}.")
     except:
         raise Exception(f"Type value in the {MODEL_CONFIG} env not provided.")
     try:
-        uri = json_obj["uri"]
-        if uri == None or uri == "":
-            raise Exception(f"Uri value in the {MODEL_CONFIG} env is None.")
+        if(json_obj["type"]=='http' or json_obj["type"]=='https'):
+            uri = json_obj["uri"]
+            if uri == None or uri == "":
+                raise Exception(f"Uri value in the {MODEL_CONFIG} env is None.")
     except:
         raise Exception(f"Uri value in the {MODEL_CONFIG} env not provided.")
     try:
-        path = json_obj["uri"]
+        path = json_obj["path"]
         if path == None or path == "":
             raise Exception(f"Path value in the {MODEL_CONFIG} env is None.")
     except:
@@ -115,10 +117,6 @@ def check_config_json(json_obj: object):
             if config == None or config == "" or config == {}:
                 raise Exception(
                     f"Config value in the {MODEL_CONFIG} env is None.")
-        else:
-            uri = json_obj["uri"]
-            raise Exception(
-                f"Config value in the {MODEL_CONFIG} env not valid: {uri}.")
     except:
         raise Exception(f"Config value in the {MODEL_CONFIG} env not valid.")
 
@@ -132,7 +130,7 @@ def json_config_s3_example():
 
 def json_s3_example():
     config = config_s3_str_example()
-    json_str = '{"type": "s3", "uri": "s3_link","path": "path_where_to_save_model", "config": '+config+'}'
+    json_str = '{"type": "s3", "path": "path_where_to_save_model", "config": '+config+'}'
     return json.loads(json_str)
 
 def config_minio_str_example():
@@ -144,11 +142,11 @@ def json_config_minio_example():
 
 def json_minio_example():
     config = config_minio_str_example()
-    json_str = '{"type": "minio", "uri": "minio_link","path": "path_where_to_save_model", "config": '+config+'}'
+    json_str = '{"type": "minio", "path": "path_where_to_save_model", "config": '+config+'}'
     return json.loads(json_str)
 
 def json_http_example():
-    json_str = '{"type": "http", "uri": "http_link","path": "path_where_to_save_model", "config": "{}"}'
+    json_str = '{"type": "http", "uri": "http_link","path": "path_where_to_save_model"}'
     return json.loads(json_str)
 
 
@@ -159,15 +157,28 @@ def print_obj_from_json(obj):
 def json_config_gs_example():
     print()
 
+
 def get_services():
     print(SUPPORTED_DOWNLOADER)
 
 def get_servicec_with_config():
     print(DOWNLOADER_WITH_CONFIG)
 
+def print_config_s3():
+    print_obj_from_json(json_s3_example())
+
+def print_config_minio():
+    print_obj_from_json(json_minio_example())
+
+def print_config_http():
+    print_obj_from_json(json_http_example())
+
+
 
 if __name__ == '__main__':
-    print_obj_from_json(json_minio_example())
-    print_obj_from_json(json_http_example())
-    #download_from_config(json_minio_example())
+    #print_config_http()
+    #check_config_json(json_http_example())
+    #print_config_minio()
+    #check_config_json(json_minio_example())
+    download_from_config(json_minio_example())
     #download_from_config(json_s3_example())
