@@ -147,6 +147,11 @@ def json_minio_example():
     json_str = '{"type": "minio", "uri": "minio_link","path": "path_where_to_save_model", "config": '+config+'}'
     return json.loads(json_str)
 
+def json_http_example():
+    json_str = '{"type": "http", "uri": "http_link","path": "path_where_to_save_model", "config": "{}"}'
+    return json.loads(json_str)
+
+
 def print_obj_from_json(obj):
     json_formatted_str = json.dumps(obj, indent=2)
     print(json_formatted_str)
@@ -158,5 +163,6 @@ def json_config_gs_example():
 
 if __name__ == '__main__':
     print_obj_from_json(json_minio_example())
+    print_obj_from_json(json_http_example())
     #download_from_config(json_minio_example())
     #download_from_config(json_s3_example())
