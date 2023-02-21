@@ -19,7 +19,7 @@ def download_from_config(config):
     else:
         type_not_implemented = config["type"]
         raise Exception(
-            f"Type parameters not yet implemented or does not esist: {type_not_implemented}, the one supported are: {SUPPORTED_DOWNLOADER}")
+            f"Type parameters not yet implemented or does not exist: {type_not_implemented}, the one supported are: {SUPPORTED_DOWNLOADER}")
 
 
 def download_file_http(url, path: str = None, config: object = None):
