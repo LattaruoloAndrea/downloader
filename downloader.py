@@ -9,7 +9,7 @@ def download_from_config(config):
     print_obj_from_json(config)
     check_config_json(config)
     if config["type"] == 'http' or config["type"] == 'https':
-        download_file_http(config["uri"], config["path"], config["config"])
+        download_file_http(config["uri"], config["path"])
     elif config["type"] == 's3' or config["type"] == 'aws':
         download_file_s3(config["path"], config["config"])
     # elif config["type"] == 'google' or config["type"] == 'gs':
@@ -22,7 +22,7 @@ def download_from_config(config):
             f"Type parameters not yet implemented or does not exist: {type_not_implemented}, the one supported are: {SUPPORTED_DOWNLOADER}")
 
 
-def download_file_http(url, path: str = None, config: object = None):
+def download_file_http(url, path: str = None):
     local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter below
     if path != None:
@@ -178,7 +178,6 @@ def print_config_http():
 if __name__ == '__main__':
     #print_config_http()
     #check_config_json(json_http_example())
-    #print_config_minio()
+    print_config_minio()
     #check_config_json(json_minio_example())
-    download_from_config(json_minio_example())
     #download_from_config(json_s3_example())
