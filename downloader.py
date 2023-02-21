@@ -159,6 +159,11 @@ def print_obj_from_json(obj):
 def json_config_gs_example():
     print()
 
+def get_services():
+    print(SUPPORTED_DOWNLOADER)
+
+def get_servicec_with_config():
+    print(DOWNLOADER_WITH_CONFIG)
 
 
 if __name__ == '__main__':
