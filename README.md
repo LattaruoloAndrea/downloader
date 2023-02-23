@@ -38,7 +38,7 @@ all the services:
 get_services()
 ```
 The list returned are the types to use in the type json config.
-Uri is the link used just in http/s, path is where the file is going to be saved, pass also the name of the file "./download/project/file_to_down.txt". The config field has 4 important fields used to access resources in minio and s3 the field references_not_to_provide is just a collection of references this field must not be passed if so will be ignored. 
+Uri is the endpoint from where to take the resource, path is where the file is going to be saved, pass also the name of the file "./download/project/file_to_down.txt". The config field has 4 important fields used to access resources in minio and s3 the field references_not_to_provide is just a collection of references this field must not be passed if so will be ignored. 
 
 It is possible to print this example json with the following commands
 
@@ -59,6 +59,5 @@ print_config_http()
 
 ### Requirements
 ```
-pip install minio
-pip install boto3
+python3 -m pip install -r requirements.txt
 ```

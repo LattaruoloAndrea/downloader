@@ -11,11 +11,11 @@ def download_from_config(config):
     if config["type"] == 'http' or config["type"] == 'https':
         download_file_http(config["uri"], config["path"])
     elif config["type"] == 's3' or config["type"] == 'aws':
-        download_file_s3(config["path"], config["config"])
+        download_file_s3(config["uri"],config["path"], config["config"])
     # elif config["type"] == 'google' or config["type"] == 'gs':
     #     download_file_google_storage(config["uri"], config["path"], config["config"])
     elif config["type"] == 'minio':
-        download_file_minio(config["path"], config["config"])
+        download_file_minio(config["uri"],config["path"], config["config"])
     else:
         type_not_implemented = config["type"]
         raise Exception(
@@ -39,9 +39,9 @@ def download_file_http(url, path: str = None):
     return local_filename
 
 
-def download_file_s3(path: str = None, config: object = None):
+def download_file_s3(endpoint: str,path: str = None, config: object = None):
     import boto3
-    s3 = boto3.client('s3',aws_access_key_id=config["access_key"] , aws_secret_access_key= config["secret_key"])
+    s3 = boto3.client(endpoint,aws_access_key_id=config["access_key"] , aws_secret_access_key= config["secret_key"])
     check_config_for_s3_minio(config)
     s3.download_file(config['BUCKET_NAME'],
                      config['OBJECT_NAME'], path)
@@ -82,11 +82,11 @@ def check_config_for_s3_minio(config: object = None):
 #     blob.download_to_filename(path)
 
 
-def download_file_minio(path: str = None, config: object = None):
+def download_file_minio(endpoint: str,path: str = None, config: object = None):
     from minio import Minio
     check_config_for_s3_minio(config)
-    client = Minio(config["BUCKET_NAME"],access_key=config["access_key"],secret_key= config["secret_key"])
-    obj = client.get_object(config["OBJECT_NAME"],path)
+    client = Minio(endpoint,access_key=config["access_key"],secret_key= config["secret_key"],secure=False)
+    client.fget_object(config["BUCKET_NAME"],config["OBJECT_NAME"],path)
     print(f"File downloaded in : {path}")
 
 def check_config_json(json_obj: object):
@@ -99,10 +99,9 @@ def check_config_json(json_obj: object):
     except:
         raise Exception(f"Type value in the {MODEL_CONFIG} env not provided.")
     try:
-        if(json_obj["type"]=='http' or json_obj["type"]=='https'):
-            uri = json_obj["uri"]
-            if uri == None or uri == "":
-                raise Exception(f"Uri value in the {MODEL_CONFIG} env is None.")
+        uri = json_obj["uri"]
+        if uri == None or uri == "":
+            raise Exception(f"Uri value in the {MODEL_CONFIG} env is None.")
     except:
         raise Exception(f"Uri value in the {MODEL_CONFIG} env not provided.")
     try:
@@ -130,11 +129,11 @@ def json_config_s3_example():
 
 def json_s3_example():
     config = config_s3_str_example()
-    json_str = '{"type": "s3", "path": "path_where_to_save_model", "config": '+config+'}'
+    json_str = '{"type": "s3","uri": "s3_endpoint", "path": "path_where_to_save_model", "config": '+config+'}'
     return json.loads(json_str)
 
 def config_minio_str_example():
-    return '{"access_key": "access_key" , "secret_key": "secret_key", "BUCKET_NAME":"BUCKET_NAME","OBJECT_NAME": "OBJECT_NAME", "references_not_to_provide": ["when creating the config json this field must not be passed","https://min.io/docs/minio/linux/developers/python/minio-py.html","https://oak-tree.tech/blog/pandas-minio-uploading-downloading-files"]}'
+    return '{"access_key": "access_key" , "secret_key": "secret_key", "BUCKET_NAME":"BUCKET_NAME","OBJECT_NAME": "OBJECT_NAME", "references_not_to_provide": ["when creating the config json this field must not be passed","https://min.io/docs/minio/linux/developers/python/minio-py.html"]}'
 
 def json_config_minio_example():
     json_data = config_minio_str_example()
@@ -142,11 +141,11 @@ def json_config_minio_example():
 
 def json_minio_example():
     config = config_minio_str_example()
-    json_str = '{"type": "minio", "path": "path_where_to_save_model", "config": '+config+'}'
+    json_str = '{"type": "minio", "uri": "minio_endpoint", "path": "path_where_to_save_model", "config": '+config+'}'
     return json.loads(json_str)
 
 def json_http_example():
-    json_str = '{"type": "http", "uri": "http_link","path": "path_where_to_save_model"}'
+    json_str = '{"type": "http", "uri": "http_endpoint","path": "path_where_to_save_model"}'
     return json.loads(json_str)
 
 
@@ -173,11 +172,20 @@ def print_config_minio():
 def print_config_http():
     print_obj_from_json(json_http_example())
 
+def try_minio_locally():
+    #These are local keys so even if they go public not a big issue
+    return '{"access_key": "iuKlqlojc0zXbmCU" , "secret_key": "B5qYTigQAZwUWvIJrKwtFzjEA3HDlNWY", "BUCKET_NAME":"try","OBJECT_NAME": "modifiche_scritte.png"}'
+
+def json_minio_example_mine():
+    config = try_minio_locally()
+    json_str = '{"type": "minio", "uri": "127.0.0.1:9000", "path": "/home/dsl/Downloads/modifiche_scritte_minio_download.png", "config": '+config+'}'
+    return json.loads(json_str)
 
 
 if __name__ == '__main__':
-    #print_config_http()
-    #check_config_json(json_http_example())
+    print_config_http()
+    print('--------------------------------------------------------------')
     print_config_minio()
-    #check_config_json(json_minio_example())
+    #check_config_json(json_http_example())
+    #download_from_config(json_minio_example_mine()) 
     #download_from_config(json_s3_example())
