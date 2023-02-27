@@ -1,5 +1,5 @@
-import requests
 import json
+import os
 
 DOWNLOADER_WITH_CONFIG = ['s3', 'aws', 'minio']
 SUPPORTED_DOWNLOADER = ['http', 'https','s3', 'aws', 'minio']
@@ -8,6 +8,7 @@ MODEL_CONFIG = "MODEL_CONFIG"
 def download_from_config(config):
     print_obj_from_json(config)
     check_config_json(config)
+    check_create_path(config["path"])
     if config["type"] == 'http' or config["type"] == 'https':
         download_file_http(config["uri"], config["path"])
     elif config["type"] == 's3' or config["type"] == 'aws':
@@ -23,6 +24,7 @@ def download_from_config(config):
 
 
 def download_file_http(url, path: str = None):
+    import requests
     local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter below
     if path != None:
@@ -181,11 +183,28 @@ def json_minio_example_mine():
     json_str = '{"type": "minio", "uri": "127.0.0.1:9000", "path": "/home/dsl/Downloads/modifiche_scritte_minio_download.png", "config": '+config+'}'
     return json.loads(json_str)
 
+def check_create_path(the_path: str):
+    directory = os.path.dirname(the_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"Directory {directory} created!")
+    else:
+        print(f"Directory {directory} already exists!")
+
+def try_minio_locally_sec():
+    #These are local keys so even if they go public not a big issue
+    return '{"access_key": "7RKRu9H6WvNDuELd" , "secret_key": "U9PgSYuaCIbAgAOta13aCrlkRbmNWYqH", "BUCKET_NAME":"try","OBJECT_NAME": "model_en.tar.gz"}'
+
+
+def json_minio_example_mine_second():
+    config = try_minio_locally_sec()
+    json_str = '{"type": "minio", "uri": "5.tcp.eu.ngrok.io:18794", "path": "/home/dsl/Downloads/model_en.tar_downloaded.gz", "config": '+config+'}'
+    return json.loads(json_str)
 
 if __name__ == '__main__':
     print_config_http()
     print('--------------------------------------------------------------')
     print_config_minio()
     #check_config_json(json_http_example())
-    #download_from_config(json_minio_example_mine()) 
+    #download_from_config(json_minio_example_mine_second()) 
     #download_from_config(json_s3_example())
