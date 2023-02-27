@@ -201,6 +201,9 @@ def json_minio_example_mine_second():
     json_str = '{"type": "minio", "uri": "5.tcp.eu.ngrok.io:18794", "path": "/home/dsl/Downloads/model_en.tar_downloaded.gz", "config": '+config+'}'
     return json.loads(json_str)
 
+def obj_from_json(json_str):
+    return json.loads(json_str)
+
 if __name__ == '__main__':
     print_config_http()
     print('--------------------------------------------------------------')
