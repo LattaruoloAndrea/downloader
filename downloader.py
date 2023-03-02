@@ -9,19 +9,22 @@ def download_from_config(config):
     print_obj_from_json(config)
     check_config_json(config)
     check_create_path(config["path"])
-    if config["type"] == 'http' or config["type"] == 'https':
-        download_file_http(config["uri"], config["path"])
-    elif config["type"] == 's3' or config["type"] == 'aws':
-        download_file_s3(config["uri"],config["path"], config["config"])
-    # elif config["type"] == 'google' or config["type"] == 'gs':
-    #     download_file_google_storage(config["uri"], config["path"], config["config"])
-    elif config["type"] == 'minio':
-        download_file_minio(config["uri"],config["path"], config["config"])
+    if not download_if_present(config["path"]):
+        if config["type"] == 'http' or config["type"] == 'https':
+            download_file_http(config["uri"], config["path"])
+        elif config["type"] == 's3' or config["type"] == 'aws':
+            download_file_s3(config["uri"],config["path"], config["config"])
+        # elif config["type"] == 'google' or config["type"] == 'gs':
+        #     download_file_google_storage(config["uri"], config["path"], config["config"])
+        elif config["type"] == 'minio':
+            download_file_minio(config["uri"],config["path"], config["config"])
+        else:
+            type_not_implemented = config["type"]
+            raise Exception(
+                f"Type parameters not yet implemented or does not exist: {type_not_implemented}, the one supported are: {SUPPORTED_DOWNLOADER}")
     else:
-        type_not_implemented = config["type"]
-        raise Exception(
-            f"Type parameters not yet implemented or does not exist: {type_not_implemented}, the one supported are: {SUPPORTED_DOWNLOADER}")
-
+        file = config["path"]
+        print(f"File: {file}, already downloaded!")
 
 def download_file_http(url, path: str = None):
     import requests
@@ -195,6 +198,8 @@ def try_minio_locally_sec():
     #These are local keys so even if they go public not a big issue
     return '{"access_key": "7RKRu9H6WvNDuELd" , "secret_key": "U9PgSYuaCIbAgAOta13aCrlkRbmNWYqH", "BUCKET_NAME":"try","OBJECT_NAME": "model_en.tar.gz"}'
 
+def download_if_present(path: str):
+    return os.path.isfile(path)
 
 def json_minio_example_mine_second():
     config = try_minio_locally_sec()
